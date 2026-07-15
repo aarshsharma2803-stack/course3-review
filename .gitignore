@@ -1,0 +1,36 @@
+# Data and model artifacts
+data/
+models/
+*.csv
+*.pkl
+*.joblib
+*.h5
+*.zip
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude Code
+CLAUDE.local.md
+.claude/
+
+# Google Colab
+.colab/
+
+# Environment / secrets
+.env
+.env.*
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

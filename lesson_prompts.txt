@@ -1,0 +1,753 @@
+================================================================================
+LESSON PROMPTS — AI Code Generation Prompts for Screen-Recorded Lessons
+================================================================================
+
+These prompts are designed to be copy-pasted into Google Colab's Gemini panel
+(or Codex) during screen-recorded lessons to demonstrate AI-assisted code
+generation. Each prompt corresponds to a code cell in the lesson notebooks.
+
+Tip: After pasting a prompt, review the generated code with students before
+running it. This models the "prompt -> review -> iterate -> validate" workflow.
+
+================================================================================
+MODULE 0 — INTRODUCTION TO COURSE 3 (0.1_lesson.ipynb)
+================================================================================
+
+--- 0.1 Prompt 1: Model Complexity vs. Interpretability Chart ---
+
+Create a grouped bar chart using Plotly that compares model complexity and
+interpretability across six model types: Logistic Regression, Regularized
+Logistic, Decision Tree, Random Forest, Gradient Boosting, and Neural Network.
+
+Assign complexity scores of 1 through 6 (increasing) and interpretability
+scores of 6, 5, 5, 3, 2, 1 (decreasing). Use steelblue for complexity bars
+and coral for interpretability bars. Title: "Model Complexity vs.
+Interpretability Trade-off". Height 400px.
+
+
+--- 0.1 Prompt 2: Verify Environment ---
+
+Write a cell that:
+1. Installs xgboost and shap quietly with pip
+2. Imports scikit-learn and xgboost and prints their versions
+3. Tries to import lightgbm, catboost, and shap — if any are missing,
+   print that they're not installed (optional packages)
+4. Print "Core packages ready!" at the end
+
+
+================================================================================
+MODULE 2.1 — INTRODUCTION TO REGULARIZATION (2.1_lesson.ipynb)
+================================================================================
+
+--- 2.1 Prompt 1: Overfitting Visualization ---
+
+Create a Plotly visualization that shows three subplots side by side to
+illustrate underfitting, good fit, and overfitting.
+
+Generate 20 synthetic data points from y = 2x + 1 with Gaussian noise
+(std=3, seed=42). Then fit three models:
+- Underfitting: a horizontal line at the mean of y
+- Good fit: a degree-1 polynomial (linear)
+- Overfitting: a degree-15 polynomial
+
+Plot the data as blue scatter points in all three panels, with the model
+fit as a line (red for under/overfit, green for good fit). Title: "The
+Fitting Spectrum: From Underfitting to Overfitting". Height 400px.
+
+
+--- 2.1 Prompt 2: Bias-Variance Trade-off ---
+
+Create a Plotly line chart showing the bias-variance trade-off.
+
+Use model complexity from 0.1 to 3 (100 points). Define:
+- Bias squared = 1 / complexity
+- Variance = 0.3 * complexity^2
+- Total error = bias^2 + variance + 0.1 (irreducible noise)
+
+Plot all three curves (blue for bias, orange for variance, red for total
+error). Add a dashed green vertical line at the optimal complexity (minimum
+total error) with annotation "Optimal Complexity". Height 400px.
+
+
+--- 2.1 Prompt 3: L1 vs L2 Geometry ---
+
+Create a Plotly visualization with two subplots showing the geometric
+constraint regions for L2 (Ridge) and L1 (Lasso) regularization.
+
+- Left panel: L2 constraint — draw a filled circle (unit radius) in blue
+  with 30% opacity. Title: "L2 (Ridge) Constraint"
+- Right panel: L1 constraint — draw a filled diamond (unit radius) in
+  orange with 30% opacity. Title: "L1 (Lasso) Constraint"
+
+Add dashed gray axis lines to both panels. Label axes as beta_1 and
+beta_2. Set axis range to [-1.5, 1.5]. Height 400px. No legend.
+
+
+================================================================================
+MODULE 2.2 — BUILD REGULARIZED MODELS (2.2_lesson.ipynb)
+================================================================================
+
+--- 2.2 Prompt 1: Load and Explore Training Data ---
+
+Mount Google Drive and load training.csv from the path:
+/content/drive/MyDrive/IR ML Cert/MLCert Course 3/Course 3 Data/
+
+Print the shape of the data and the normalized value counts of the
+SEM_3_STATUS column (our target variable).
+
+
+--- 2.2 Prompt 2: Build Preprocessing Pipeline ---
+
+Using scikit-learn's ColumnTransformer, create a preprocessing pipeline for
+our student data with three transformers:
+
+1. MinMaxScaler for bounded features: HS_GPA, GPA_1, GPA_2, DFW_RATE_1,
+   DFW_RATE_2
+2. StandardScaler for larger numeric features: UNITS_ATTEMPTED_1,
+   UNITS_ATTEMPTED_2
+3. OneHotEncoder for categorical features: GENDER, RACE_ETHNICITY,
+   FIRST_GEN_STATUS — drop the categories 'Female', 'Other', 'Unknown'
+   respectively. Use handle_unknown='ignore' and sparse_output=False.
+
+Set remainder='drop' to exclude any other columns.
+
+
+--- 2.2 Prompt 3: Build L2 (Ridge) Logistic Regression Pipeline ---
+
+Create a scikit-learn Pipeline with two steps:
+1. The preprocessor we just defined
+2. A LogisticRegression with L2 penalty, C=1.0, class_weight='balanced',
+   solver='lbfgs', max_iter=1000, random_state=42
+
+Name the steps 'preprocessing' and 'classifier'. Print the model and
+display the pipeline.
+
+
+--- 2.2 Prompt 4: Build L1 (Lasso) Logistic Regression Pipeline ---
+
+Create the same pipeline but with L1 penalty instead of L2. Use
+solver='saga' (required for L1). Keep C=1.0, class_weight='balanced',
+max_iter=1000, random_state=42.
+
+
+--- 2.2 Prompt 5: Build ElasticNet Logistic Regression Pipeline ---
+
+Create the same pipeline with ElasticNet penalty. Use solver='saga',
+l1_ratio=0.5 (equal mix of L1 and L2), C=1.0, class_weight='balanced',
+max_iter=1000, random_state=42.
+
+
+--- 2.2 Prompt 6: Compare and Save All Models ---
+
+Create a dictionary of all three models (L2 Ridge, L1 Lasso, ElasticNet).
+Loop through them and print each model's penalty, C value, solver, and
+l1_ratio (if applicable).
+
+Then save each model as a pickle file to the models directory with
+descriptive filenames like l2_ridge_logistic_model.pkl.
+
+
+================================================================================
+MODULE 2.3 — TRAIN AND COMPARE MODELS (2.3_lesson.ipynb)
+================================================================================
+
+--- 2.3 Prompt 1: Load Data and Models ---
+
+Mount Google Drive. Load training.csv from:
+/content/drive/MyDrive/IR ML Cert/MLCert Course 3/Course 3 Data/
+
+Then load four pickled model pipelines from the same directory:
+- l2_ridge_logistic_model.pkl
+- l1_lasso_logistic_model.pkl
+- elasticnet_logistic_model.pkl
+- baseline_logistic_model.pkl (from Course 2, no regularization)
+
+Store them in a dictionary with descriptive keys.
+
+
+--- 2.3 Prompt 2: Train All Models ---
+
+Loop through the dictionary of models and call .fit(X_train, y_train) on
+each one. Print a status message as each model trains. X_train is the full
+training DataFrame and y_train is the SEM_3_STATUS column.
+
+
+--- 2.3 Prompt 3: Compare Coefficients Across Models ---
+
+For each trained model, extract the classifier coefficients and the
+feature names from the preprocessor (using get_feature_names_out()).
+Clean up the feature names by removing the transformer prefix.
+
+Create a Plotly grouped bar chart comparing coefficient values across all
+four models (Baseline, L2, L1, ElasticNet) for each feature. Use
+barmode='group', height 500px. Rotate x-axis labels 45 degrees.
+
+
+--- 2.3 Prompt 4: Coefficient Norms ---
+
+For each model, compute:
+- L2 norm: square root of sum of squared coefficients
+- L1 norm: sum of absolute coefficient values
+
+Display as a DataFrame. This measures overall model complexity — we expect
+regularized models to have smaller norms than the baseline.
+
+
+--- 2.3 Prompt 5: L1 Feature Selection Analysis ---
+
+From the L1 (Lasso) model, extract the coefficients. Create a DataFrame
+with columns: Feature, Coefficient, Selected (True if coefficient != 0).
+Sort by absolute coefficient value descending.
+
+Print: total features, number selected (non-zero), number eliminated.
+Display the full table.
+
+Then create a bar chart with green bars for selected features and light
+gray bars for eliminated features. Title: "L1 (Lasso) Coefficients:
+Green = Selected, Gray = Eliminated".
+
+
+--- 2.3 Prompt 6: Cross-Validation Comparison ---
+
+Set up 5-fold stratified cross-validation (random_state=42). Create
+custom scorers for F1, Precision, and Recall with pos_label='N' (students
+who leave — the minority class we care about).
+
+Run cross_val_score for all four models on all three metrics. Collect
+results in a DataFrame showing mean and std for each metric per model.
+
+Then create a Plotly subplot with three panels (F1, Precision, Recall)
+showing bar charts with error bars for each model. Height 400px.
+
+
+--- 2.3 Prompt 7: Save Trained Models ---
+
+Save all four trained models as pickle files with '_trained' appended to
+the filename. Print the save path for each.
+
+
+================================================================================
+MODULE 2.4 — TUNE HYPERPARAMETERS (2.4_lesson.ipynb)
+================================================================================
+
+--- 2.4 Prompt 1: Load Data and Models for Tuning ---
+
+Mount Google Drive. Load both training.csv and testing.csv from:
+/content/drive/MyDrive/IR ML Cert/MLCert Course 3/Course 3 Data/
+
+Create X_train, y_train from training data and X_test, y_test from test
+data. The target is SEM_3_STATUS.
+
+Load the three pickled model pipelines: L2, L1, and ElasticNet.
+
+
+--- 2.4 Prompt 2: Tune L2 (Ridge) with GridSearchCV ---
+
+Set up GridSearchCV to tune the L2 model's C parameter. Search over
+C = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0].
+
+Use 5-fold StratifiedKFold (shuffle=True, random_state=42). Optimize
+for F1 score on the minority class (pos_label='N'). Use n_jobs=-1 and
+return_train_score=True.
+
+Note: the parameter path in the pipeline is 'classifier__C'.
+
+Fit the grid search on X_train and y_train. Print the best C value and
+best CV F1 score. Then display a results table showing C, Train F1,
+CV F1, CV F1 Std, and Rank for all C values.
+
+
+--- 2.4 Prompt 3: Tune L1 (Lasso) with GridSearchCV ---
+
+Do the same GridSearchCV for the L1 model over the same C values.
+Print the best C and best CV F1 score. Display the results table.
+
+
+--- 2.4 Prompt 4: Tune ElasticNet with 2D GridSearchCV ---
+
+Tune the ElasticNet model over TWO hyperparameters simultaneously:
+- classifier__C: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+- classifier__l1_ratio: [0.1, 0.3, 0.5, 0.7, 0.9]
+
+This gives 30 total combinations. Use the same CV and scoring setup.
+Print the best C, best l1_ratio, and best CV F1 score. Display the
+top 10 results sorted by rank.
+
+
+--- 2.4 Prompt 5: Visualize ElasticNet Hyperparameter Grid ---
+
+Create a heatmap of the ElasticNet GridSearch results using Plotly's
+px.imshow. The x-axis is C values, y-axis is l1_ratio values, and the
+color shows CV F1 Score. Use the Viridis color scale. This helps us see
+which region of the hyperparameter space performs best.
+
+
+--- 2.4 Prompt 6: Compare All Tuned Models ---
+
+Create a comparison table showing the best model from each regularization
+type with columns: Model, Best C, Best l1_ratio, CV F1 Mean, CV F1 Std.
+
+Then create a bar chart comparing CV F1 scores with error bars across the
+three tuned models. Use different colors for each model.
+
+
+--- 2.4 Prompt 7: Select Best Model and Evaluate on Test Set ---
+
+Identify the model with the highest CV F1 score. Extract its best
+estimator from the GridSearchCV object.
+
+Generate predictions on the test set. Calculate F1, Precision, Recall
+(pos_label='N'), and Accuracy. Print a formatted summary.
+
+Then print the full classification_report from scikit-learn.
+
+Important: we only evaluate on the test set ONCE after all tuning is
+complete to avoid data leakage.
+
+
+--- 2.4 Prompt 8: Confusion Matrix ---
+
+Create an interactive confusion matrix heatmap using Plotly for the best
+model's test set predictions. Labels should be 'Left (N)' and 'Stayed (Y)'
+for both axes. Use the Blues color scale with text annotations showing
+counts. Height 400px.
+
+Then print an interpretation: True Positives, True Negatives, False
+Positives, and False Negatives with their counts.
+
+
+--- 2.4 Prompt 9: Visualize C Effect on Performance ---
+
+Create a 3-panel Plotly subplot showing how CV F1 score changes with C
+(on a log10 scale) for each regularization type: L2, L1, and ElasticNet.
+Include error bars. For ElasticNet, use the best l1_ratio at each C value.
+
+This visualization shows the bias-variance trade-off in action —
+small C (strong regularization) may underfit, large C (weak regularization)
+may overfit.
+
+
+--- 2.4 Prompt 10: Save Best Model ---
+
+Save the best tuned model as a pickle file. Also save a dictionary
+containing all three GridSearchCV objects and the best model name for
+future reference.
+
+
+================================================================================
+MODULE 3.1 — INTRODUCTION TO TREE-BASED MODELS (3.1_lesson.ipynb)
+================================================================================
+
+--- 3.1 Prompt 1: Same API Demo ---
+
+Demonstrate that Decision Tree, Random Forest, and XGBoost all follow the
+exact same scikit-learn API. Import all three classifiers and create a
+dictionary with each model instantiated with reasonable hyperparameters:
+- Decision Tree: max_depth=5
+- Random Forest: n_estimators=100, max_depth=10
+- XGBoost: n_estimators=100, max_depth=5, learning_rate=0.1
+
+Loop through and print the three commands each model uses:
+model.fit(), model.predict(), model.predict_proba()
+
+End with: "Same three lines. Different model, same interface."
+
+
+--- 3.1 Prompt 2: Decision Tree Anatomy Visualization ---
+
+Using Plotly, create a visual representation of a decision tree structure
+for student departure prediction. Draw a tree with 3 levels:
+- Root node: "GPA_1 <= 3.5?"
+- Level 2: "DFW > 0.3?" and "UNITS < 12?"
+- Leaf nodes: "Not Enrolled" or "Enrolled"
+
+Use light blue circles for decision nodes and light green squares for
+leaf nodes. Connect them with gray lines. Add "Yes"/"No" labels on
+the first branch. Height 450px, no gridlines or axis labels.
+
+
+================================================================================
+MODULE 3.2 — BUILDING TREE-BASED MODELS (3.2_lesson.ipynb)
+================================================================================
+
+--- 3.2 Prompt 1: Load and Prepare Data ---
+
+Load training.csv and testing.csv from ../data/. Create a binary DEPARTED
+column (1 if SEM_3_STATUS != 'E', 0 otherwise).
+
+Define numeric features: HS_GPA, HS_MATH_GPA, HS_ENGL_GPA,
+UNITS_ATTEMPTED_1/2, UNITS_COMPLETED_1/2, DFW_UNITS_1/2, GPA_1/2,
+DFW_RATE_1/2, GRADE_POINTS_1/2.
+
+Categorical features: RACE_ETHNICITY, GENDER, FIRST_GEN_STATUS, COLLEGE.
+
+One-hot encode categoricals with drop_first=True, align columns between
+train and test, fill missing with median. Print feature count and note
+that no scaling is needed for tree-based models.
+
+
+--- 3.2 Prompt 2: Build Decision Tree ---
+
+Build a Decision Tree classifier with max_depth=8, min_samples_split=20,
+min_samples_leaf=10, max_features='sqrt', class_weight='balanced',
+random_state=42. Time the training. Generate predictions and probabilities
+on the test set. Print accuracy, precision, recall, F1, and ROC-AUC.
+
+
+--- 3.2 Prompt 3: Build Random Forest ---
+
+Build a Random Forest with n_estimators=200, max_depth=12,
+min_samples_split=10, min_samples_leaf=5, max_features='sqrt',
+class_weight='balanced', n_jobs=-1, random_state=42. Time training.
+Evaluate with the same metrics as the Decision Tree.
+
+
+--- 3.2 Prompt 4: Build XGBoost ---
+
+Build an XGBoost classifier with n_estimators=150, learning_rate=0.1,
+max_depth=5, min_child_weight=3, subsample=0.8, colsample_bytree=0.8,
+scale_pos_weight calculated from the class ratio, random_state=42.
+Time training and evaluate with the same metrics.
+
+
+--- 3.2 Prompt 5: Side-by-Side Comparison ---
+
+Create a DataFrame comparing all three models on Accuracy, Precision,
+Recall, F1 Score, ROC-AUC, and Training Time. Print it as a formatted
+table. Then create a Plotly grouped bar chart comparing the five metrics
+(not training time) with green for Decision Tree, blue for Random Forest,
+red for XGBoost. Height 450px.
+
+
+--- 3.2 Prompt 6: Feature Importance ---
+
+Extract feature_importances_ from all three trained models. Create a
+DataFrame with features and importances from each model. Sort by Random
+Forest importance and take top 15.
+
+Create a Plotly subplot with 3 panels (one per model) showing horizontal
+bar charts of the top 15 features. Use the same color scheme as above.
+Height 500px.
+
+
+--- 3.2 Prompt 7: Visualize Decision Tree ---
+
+Train a shallow Decision Tree (max_depth=3, class_weight='balanced') for
+visualization. Use matplotlib's plot_tree to render it with feature names,
+class names ['Enrolled', 'Departed'], filled colors, and rounded corners.
+Figure size 20x10. Title: "Decision Tree for Student Departure (max_depth=3)".
+
+Print: "This tree can be shared directly with academic advisors!"
+
+
+--- 3.2 Prompt 8: Cross-Validation ---
+
+Run 5-fold stratified cross-validation (scoring='roc_auc') for all three
+models using the same hyperparameters. Print each model's mean AUC and
+standard deviation in a formatted table.
+
+
+================================================================================
+MODULE 3.3 — TUNING TREE-BASED MODELS (3.3_lesson.ipynb)
+================================================================================
+
+--- 3.3 Prompt 1: Setup ---
+
+Load training and testing data from ../data/. Prepare features the same
+way as notebook 3.2 (one-hot encode, align, fill NAs). Set up 5-fold
+stratified cross-validation. Import GridSearchCV and RandomizedSearchCV.
+
+
+--- 3.3 Prompt 2: Tune Decision Tree ---
+
+Use GridSearchCV to tune a Decision Tree over:
+- max_depth: [3, 5, 8, 12]
+- min_samples_split: [10, 20, 50]
+- min_samples_leaf: [5, 10, 20]
+- class_weight: ['balanced', None]
+
+Score with 'roc_auc'. Print the best AUC, best parameters, and test AUC.
+
+
+--- 3.3 Prompt 3: Tune Random Forest ---
+
+Use RandomizedSearchCV (n_iter=30) to tune a Random Forest over:
+- n_estimators: [100, 200, 300]
+- max_depth: [8, 12, 16, None]
+- min_samples_split: [5, 10, 20]
+- min_samples_leaf: [3, 5, 10]
+- max_features: ['sqrt', 'log2']
+- class_weight: ['balanced', 'balanced_subsample']
+
+Print best AUC, best parameters, and test AUC.
+
+
+--- 3.3 Prompt 4: Tune XGBoost ---
+
+Use RandomizedSearchCV (n_iter=30) to tune XGBoost over:
+- n_estimators: [100, 200, 300]
+- learning_rate: [0.01, 0.05, 0.1, 0.2]
+- max_depth: [3, 5, 7]
+- min_child_weight: [1, 3, 5]
+- subsample: [0.7, 0.8, 0.9]
+- colsample_bytree: [0.7, 0.8, 0.9]
+
+Include scale_pos_weight for class imbalance. Print results.
+
+
+--- 3.3 Prompt 5: XGBoost Early Stopping ---
+
+Split training data 80/20 for early stopping validation. Build an
+XGBoost with n_estimators=1000 (high ceiling), learning_rate=0.05,
+and early_stopping_rounds=20. Fit with eval_set on the validation split.
+
+Print the best iteration number and test AUC. Show how early stopping
+prevented unnecessary training rounds.
+
+
+--- 3.3 Prompt 6: Compare Tuned Models ---
+
+Compare all three tuned models (from their best_estimator_) on ROC-AUC,
+F1, Precision, and Recall on the test set. Display as a formatted table.
+
+
+================================================================================
+MODULE 3.4 — EVALUATING TREE-BASED MODELS (3.4_lesson.ipynb)
+================================================================================
+
+--- 3.4 Prompt 1: Setup and Train Models ---
+
+Load data, prepare features, and train all three tree-based models
+(Decision Tree, Random Forest, XGBoost) with good hyperparameters.
+Store predictions and probabilities in dictionaries for evaluation.
+
+
+--- 3.4 Prompt 2: ROC Curves ---
+
+Plot ROC curves for all three models on the same chart using Plotly.
+Include a dashed gray diagonal line for random performance. Show AUC
+in the legend for each model. Use green/blue/red color scheme. Height 500px.
+
+
+--- 3.4 Prompt 3: Precision-Recall Curves ---
+
+Plot Precision-Recall curves for all three models. Include a horizontal
+dashed line at the baseline (class prevalence). Show Average Precision
+in the legend. Height 500px.
+
+
+--- 3.4 Prompt 4: Confusion Matrices ---
+
+Create a 3-panel Plotly subplot showing confusion matrices for all three
+models side by side. Label cells with TN/FP/FN/TP and their counts.
+Use Blues colorscale. Height 400px.
+
+
+--- 3.4 Prompt 5: Feature Importance Comparison ---
+
+Extract feature importances from all three models. Compute average
+importance across models. Take top 10 features by average importance.
+Create a grouped horizontal bar chart comparing importance across models.
+Print the top 5 features with their average importance scores.
+
+
+================================================================================
+MODULE 4.1 — SYSTEMATIC MODEL COMPARISON (4.1_lesson.ipynb)
+================================================================================
+
+--- 4.1 Prompt 1: Setup with Scaling ---
+
+Load data from ../data/. Prepare features with one-hot encoding.
+Create BOTH unscaled (X_train, X_test) for tree models AND scaled
+(X_train_scaled, X_test_scaled using StandardScaler) for logistic
+regression. Print dataset dimensions.
+
+
+--- 4.1 Prompt 2: Train Three Models ---
+
+Train all three models with timing:
+1. Regularized Logistic Regression (L2, C=0.1) on SCALED data
+2. Random Forest (200 trees, max_depth=12, balanced) on UNSCALED data
+3. XGBoost (150 estimators, lr=0.1, max_depth=5) on UNSCALED data
+
+Generate predictions and probabilities for each. Note that logistic
+regression uses scaled data while tree models use unscaled data.
+
+
+--- 4.1 Prompt 3: Comprehensive Metrics Table ---
+
+Calculate for each model: Accuracy, Precision, Recall, F1, ROC-AUC,
+Average Precision, Brier Score, and Training Time. Display as a
+formatted DataFrame. Then create a Plotly grouped bar chart comparing
+the five core metrics. Use purple/blue/red colors.
+
+
+--- 4.1 Prompt 4: ROC and PR Curves Side by Side ---
+
+Create a 2-panel Plotly subplot with ROC curves on the left and
+Precision-Recall curves on the right. Show all three models on each
+panel with AUC/AP in the legend. Include reference lines (diagonal
+for ROC, baseline for PR).
+
+
+--- 4.1 Prompt 5: Radar Chart ---
+
+Create a Plotly radar chart comparing the three models across 6 dimensions:
+ROC-AUC (from actual scores, scaled to 10), Interpretability,
+Training Speed, Handles Non-linearity, Ease of Deployment, and
+Stakeholder Trust. Use subjective scores for non-metric dimensions
+(Logistic highest on interpretability/trust, XGBoost highest on
+non-linearity). Fill with 30% opacity.
+
+
+================================================================================
+MODULE 4.2 — FINAL MODEL SELECTION (4.2_lesson.ipynb)
+================================================================================
+
+--- 4.2 Prompt 1: Save and Load Model ---
+
+Train a Random Forest with 200 trees on the student departure data.
+Save it using joblib.dump(). Then load it back with joblib.load() and
+verify that predictions match the original model. Print the test AUC
+to confirm the loaded model works correctly.
+
+
+================================================================================
+MODULE 5.1 — UNSUPERVISED LEARNING (5.1_lesson.ipynb)
+================================================================================
+
+--- 5.1 Prompt 1: Generate Student Entry Data ---
+
+Generate a synthetic dataset of 1,000 students with these variables:
+- HS_GPA: normal(3.2, 0.45), clipped to 2.0-4.0
+- HS_MATH_GPA: normal(3.0, 0.55), clipped to 1.5-4.0
+- HS_ENGL_GPA: normal(3.1, 0.50), clipped to 1.5-4.0
+- UNITS_ATTEMPTED_1: choice from [9,12,13,14,15,16,17,18]
+- FIRST_GEN: binomial(1, 0.42)
+- PELL_ELIGIBLE: binomial(1, 0.38)
+- DISTANCE_FROM_CAMPUS: exponential(25), clipped to 1-200
+
+Use random_state=42. Show descriptive statistics.
+
+
+--- 5.1 Prompt 2: Scale and Show Effect ---
+
+Scale the student data with StandardScaler. Print the before/after
+ranges for HS_GPA and DISTANCE_FROM_CAMPUS to show why scaling matters
+for distance-based algorithms like K-Means.
+
+
+--- 5.1 Prompt 3: Elbow and Silhouette Analysis ---
+
+Run K-Means for k=2 through k=10. For each k, compute inertia and
+silhouette score. Create a 2-panel matplotlib plot:
+- Left: Elbow Method (inertia vs. k) with vertical line at k=4
+- Right: Silhouette Analysis (score vs. k) with vertical line at k=4
+
+
+--- 5.1 Prompt 4: Fit K-Means ---
+
+Fit K-Means with k=4 on the scaled student data. Add cluster labels
+to the DataFrame. Print the silhouette score and cluster sizes.
+
+
+--- 5.1 Prompt 5: PCA Visualization ---
+
+Apply PCA with 2 components to the scaled data. Create a matplotlib
+scatter plot colored by cluster (using 'Set2' colormap). Label axes
+with PC1/PC2 and their explained variance percentages. Add a colorbar.
+Print total variance explained by the two components.
+
+
+--- 5.1 Prompt 6: Cluster Profiling ---
+
+Group the data by cluster and compute means. Print the profile table.
+Then create a seaborn heatmap where colors show z-scored values (to
+highlight what makes each cluster distinctive) but annotations show
+the raw means. Use RdYlGn colormap, centered at 0.
+
+
+--- 5.1 Prompt 7: Course Bottleneck Data ---
+
+Generate 1,000 synthetic course sections with: ENROLLMENT (lognormal),
+DFW_RATE (beta), PASS_RATE (beta), AVG_GPA (normal), REPEAT_RATE (beta),
+AVG_REPEAT_DELAY (exponential), SECTION_SIZE (choice), PCT_FIRST_YEAR
+(beta), PCT_STEM (beta), INSTRUCTOR_RATING (normal), PREREQUISITE_COUNT
+(choice), IS_GATEWAY (binomial), UNITS (choice).
+
+
+--- 5.1 Prompt 8: Cluster Courses ---
+
+Scale the course data. Run silhouette analysis for k=2 to 10 with a
+matplotlib plot. Fit K-Means with k=4. Apply PCA and create a scatter
+plot colored by cluster. All in one cell.
+
+
+--- 5.1 Prompt 9: Course Profiles ---
+
+Create cluster profiles for the course data (means per cluster). Print
+the profile table. Create a z-scored seaborn heatmap with RdYlGn_r
+colormap (reversed — red = concerning, green = favorable).
+
+
+--- 5.1 Prompt 10: Risk Prioritization Index ---
+
+Create a composite risk index for each course section:
+- 40% weight: DFW_RATE (normalized)
+- 30% weight: REPEAT_RATE (normalized)
+- 30% weight: 1 - PASS_RATE (normalized)
+
+Show the top 20 highest-risk sections. Then create two matplotlib plots:
+a boxplot of risk index by cluster and a histogram showing risk
+distribution by cluster.
+
+
+================================================================================
+MODULE 6.1 — ADDITIONAL BOOSTING ALGORITHMS (6.1_lesson.ipynb)
+================================================================================
+
+--- 6.1 Prompt 1: Setup + AdaBoost ---
+
+Load the student departure data (same prep as Module 3). Build an
+AdaBoost classifier with 200 estimators and learning_rate=0.1. Train
+it and print the ROC-AUC on the test set.
+
+
+--- 6.1 Prompt 2: LightGBM ---
+
+Build a LightGBM classifier with n_estimators=150, learning_rate=0.1,
+max_depth=5, num_leaves=31, class_weight='balanced'. Wrap in a
+try/except in case LightGBM isn't installed. Print ROC-AUC.
+
+
+--- 6.1 Prompt 3: CatBoost ---
+
+Build a CatBoost classifier with 150 iterations, learning_rate=0.1,
+depth=5, auto_class_weights='Balanced'. Wrap in try/except. Print
+ROC-AUC. Set verbose=0 to suppress training output.
+
+
+================================================================================
+MODULE 6.2 — NEURAL NETWORKS (6.2_lesson.ipynb)
+================================================================================
+
+--- 6.2 Prompt 1: Neural Network ---
+
+Load student departure data. IMPORTANT: Scale features with
+StandardScaler (neural networks require this, unlike tree models).
+
+Build an MLPClassifier with:
+- hidden_layer_sizes=(64, 32, 16) — three hidden layers
+- activation='relu', solver='adam'
+- alpha=0.001 (L2 regularization)
+- batch_size=32, learning_rate='adaptive'
+- max_iter=500, early_stopping=True
+- random_state=42
+
+Train on scaled data. Print ROC-AUC and note that neural networks
+require scaling.
+
+
+================================================================================
+END OF PROMPTS
+================================================================================
