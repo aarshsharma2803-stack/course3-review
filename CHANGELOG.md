@@ -599,3 +599,31 @@ First draft of `8.5_lesson.ipynb` silently "improved" the advisor-outreach-list 
 - `8.5_lesson.ipynb` loads `Deploy_Survey_Data.csv` / `Deploy_Data_Other.csv` — still pending Keval's answer on which raw file (`deploy_departure.csv` vs `deploy_grade_points.csv`) is canonical and what the two `student_academics_deploy_*.csv` files are for.
 
 **Module 8 status:** all 5 `_lesson.ipynb` files now exist alongside the 5 `_code_brief.ipynb` files built earlier. Two items remain before Module 8 can be called fully complete: the 3.3_lesson rebuild (blocks 8.3/8.4 from actually running locally) and Keval's deploy-data answer (blocks 8.5).
+
+---
+
+## 2026-07-15 — Repo-wide GitHub cell-ID fix, then full cross-module audit
+
+**Background:** Created a private GitHub repo (`course3-review`) to review changes. After pushing, lesson notebooks wouldn't open on GitHub.
+
+### Root cause and fix: missing cell `id` fields
+GitHub's notebook renderer requires every cell to have a real string `id` when `nbformat_minor >= 5` (nbformat 4.5+ spec). The lesson-file generator script used earlier this session wrote `"id": null` instead of real IDs. Wrote a repo-wide script assigning a unique id to every cell missing one, touching only the `id` field — verified no code content changed (spot-checked `7.6_code_brief.ipynb` still byte-for-byte identical to its lecture after the fix). **27 files fixed**: all of 7.1–7.6 and 8.1–8.5 lesson files, several code_briefs (1.1–1.3, 3.1–3.4, 4.1–4.2, 5.1, 6.1–6.2), and 3 lecture files (1.1, 1.2, 1.3, 4.2) that had the same gap. Committed and pushed.
+
+### Full cross-module audit (user requested `/code-review`, but the skill needs a git diff — repo was fully committed/pushed with nothing pending, so its diff was empty; pivoted to the same manual sweep methodology used all session)
+Three systematic sweeps across every module (0–8):
+1. **Leakage pattern sweep** (`test.fillna(test.median())`, `preprocessor.fit_transform(test)`, etc.) — only known, already-flagged issues found (3.3_lesson still broken, 4.2's intentional as-is match). Nothing new.
+2. **Scoring-metric mismatch sweep** (lesson/code_brief `scoring=` vs. lecture's) — only the known 3.3_lesson issue. Nothing new.
+3. **Code_brief vs. lecture logic/byte comparison, all modules** — surfaced a real, previously-unflagged bug:
+
+### New bugs found and fixed: `2.2_code_brief.ipynb`, `2.3_code_brief.ipynb`, `2.4_code_brief.ipynb`
+Three separate problems, all from when these files were built early in this session (before the byte-exact methodology was standardized):
+
+1. **Wrong path convention.** All three code_briefs used local `../data/`/`../models/` paths, but their lectures (2.2/2.3/2.4) mount Google Drive and use `project_path = '/content/drive/MyDrive/Applied-Data-Analytics-For-Higher-Education-Course-3'`. Code_briefs are supposed to match the lecture exactly (the local-path convention is only for lesson files) — flagged to Juan, who chose **"match the lecture exactly"** over the alternative (adopt the lesson-style local convention). Fixed all three: added `drive.mount()`, restored the real `project_path`/`data_filepath`/`models_filepath` variables, updated every read/write to use them.
+2. **Wrong title in two files.** `2.2_code_brief.ipynb` and `2.3_code_brief.ipynb` both had copy-paste title errors — headed "1.2 Code Brief" and "1.3 Code Brief" respectively (Module 1 numbering) instead of "2.2"/"2.3". Fixed.
+3. **`2.4_code_brief.ipynb` — wrong model filenames and incomplete save logic**, found while fixing the path issue:
+   - Loaded `l2_ridge_logistic_model.pkl` etc. (files that don't exist — 2.2/2.3 actually save `l2_ridge_logistic.pkl`, no `_model` suffix). Fixed to the correct filenames.
+   - Final save cell used a dynamic filename (`{best_model_name}_tuned.pkl`) instead of the lecture's fixed `best_tuned_logistic_model.pkl` — the exact name `4.1`'s lecture/lesson load. Also completely missing the `grid_search_comparison_data.pkl` save (a dict of all 3 GridSearchCV objects + best model name) that the lecture produces. Both fixed to match the lecture's cell `34` exactly.
+
+**Verified:** all three code_briefs re-checked — correct titles, Drive paths throughout, zero local-path references remaining, correct model filenames matching what 2.2/2.3/2.4's lectures actually save/load.
+
+**Audit conclusion:** aside from the two long-known, already-flagged open items (3.3_lesson rebuild, 8.5 deploy-data question), the entire course (modules 0–8) is now verified consistent — every code_brief matches its lecture's actual code and environment, every lesson file either matches its lecture's logic (on local paths, per the established lesson convention) or correctly mirrors a known unfixed lecture bug pending approval.
