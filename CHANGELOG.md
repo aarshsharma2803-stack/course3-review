@@ -650,3 +650,27 @@ Rebuilt as 18 cells on local `../data/`/`../models/` paths (same convention as e
 **Downstream effect:** `3.4_lesson.ipynb` and `4.1_lesson.ipynb` (which already expected these exact three files in `../models/`) are now unblocked — `3.3_lesson.ipynb` actually produces what they need.
 
 **Module 3 status: fully complete.** Item #1 and #5 from the "what's left" list are resolved — 8.3_lesson/8.4_lesson can now actually run locally once data is in place.
+
+---
+
+## 2026-07-15 — Remaining "what's left" items: `5.1_code_brief.ipynb` rebuild, 1.1 wording fix, repo cleanup
+
+Before fixing, checked whether either flagged item was actually a genuine bug or something required as-is (same diligence as the 3.3 files, which turned out to be genuinely load-bearing downstream). Confirmed both were real, isolated bugs with no hidden dependency:
+- `5.1`'s lecture is fully self-contained (all synthetic data generated inline, zero `pickle.dump`/`joblib.dump`/`to_csv`/external `read_csv` calls) and nothing in modules 6/7/8 references module 5 at all — safe to rebuild with no downstream risk.
+- 1.1's "CRISP framework from notebook 1.2" reference is a genuine forward-reference error — confirmed CRISP is never taught before 1.1 (module 0 doesn't mention it), and 1.2 independently teaches CRISP fresh rather than citing 1.1 as its source. No hidden intent, just a wording slip.
+
+### `5.1_code_brief.ipynb` rebuilt
+25 cells — condensed markdown headers + all 16 of the lecture's code cells. First attempt (typed from memory) dropped several inline comments and renamed one variable (`entry_pca` → `coords`) — caught during verification, rebuilt a second time by extracting the lecture's cells programmatically instead of retyping them, to guarantee exactness.
+**Verified:** byte-for-byte identical to `5.1 Institutional Pattern Discovery with Unsupervised Learning.ipynb` across all 16 code cells.
+
+### `1.1 AI-Assisted Coding in Google Colab with Gemini.ipynb` (lecture) — wording fix
+Two cells referenced CRISP as if it came from notebook 1.2 (which is taught *after* 1.1):
+- Cell `3f720294`: "The same CRISP prompting framework from notebook 1.2 works perfectly with Gemini" → "The CRISP prompting framework works perfectly with Gemini (you'll use this same framework with Codex in notebook 1.2)"
+- Cell `d9b0fe89` (Summary): "The same CRISP framework from Codex (notebook 1.2) works with Gemini" → "The CRISP framework works with Gemini here, and you'll use it again with Codex in notebook 1.2"
+
+Checked `1.1_code_brief.ipynb` and `1.1_lesson.ipynb` for the same issue — neither had it, no changes needed there.
+
+### GitHub repo cleanup
+Removed `3.3_comparison_for_juan.md` and `3.3_comparison_for_juan.pdf` from the GitHub repo (user request — these were scratch review artifacts made to get Juan's sign-off on the 3.3 duplicate-file merge, already resolved, not course content). Used `git rm --cached` (untrack, keep local copies) plus added both to `.gitignore` so they don't get re-tracked. They remain in the repo's git history (initial commit) but no longer appear in the current tree or any future commit.
+
+**"What's left" list status:** items #2 (5.1_code_brief) and #3 (1.1 wording) resolved. Only #4 (8.5 positional-join, still just a recommendation pending approval) and #6 (8.5 deploy data, partially resolved — have `Deploy_Survey_Data.csv` from Keval, still need `Deploy_Data_Other.csv` and file clarification) remain open.

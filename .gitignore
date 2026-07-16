@@ -34,3 +34,7 @@ CLAUDE.local.md
 *.swp
 *.swo
 *~
+
+# Juan review artifacts (kept locally, not needed on GitHub)
+3.3_comparison_for_juan.md
+3.3_comparison_for_juan.pdf
