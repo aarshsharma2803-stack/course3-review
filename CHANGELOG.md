@@ -627,3 +627,26 @@ Three separate problems, all from when these files were built early in this sess
 **Verified:** all three code_briefs re-checked — correct titles, Drive paths throughout, zero local-path references remaining, correct model filenames matching what 2.2/2.3/2.4's lectures actually save/load.
 
 **Audit conclusion:** aside from the two long-known, already-flagged open items (3.3_lesson rebuild, 8.5 deploy-data question), the entire course (modules 0–8) is now verified consistent — every code_brief matches its lecture's actual code and environment, every lesson file either matches its lecture's logic (on local paths, per the established lesson convention) or correctly mirrors a known unfixed lecture bug pending approval.
+
+---
+
+## 2026-07-15 — `3.3_lesson.ipynb` and `3.3_code_brief.ipynb` rebuilt for real this time
+
+**Background:** These two files were reported fixed earlier this session, then discovered still broken during a later review (likely reverted by a Downloads-folder file replacement somewhere along the way). A rebuild attempt got blocked mid-way by the permission system. User re-approved; rebuilt both from scratch this time, verified immediately rather than assumed.
+
+### `3.3_code_brief.ipynb`
+Rebuilt as 19 cells — condensed markdown headers + all 9 of the canonical lecture's code cells transcribed exactly (Drive paths, F1 scoring throughout, `xgb_search.best_params_` reuse for early stopping, the `dt_tuned_f1.pkl`/`rf_tuned_f1.pkl`/`xgb_tuned_f1.pkl` save cell).
+**Verified:** byte-for-byte identical to `3.3 Tuning Tree-Based Models.ipynb` across all 9 code cells (caught and fixed one `→` vs `->` unicode mismatch during verification).
+
+### `3.3_lesson.ipynb`
+Rebuilt as 18 cells on local `../data/`/`../models/` paths (same convention as every other lesson file), matching the lecture's actual logic:
+- `scoring='f1'` throughout (not `roc_auc`)
+- Train-only median imputation (not leakage)
+- XGBoost early stopping reuses `xgb_search.best_params_` (not hardcoded hyperparameters)
+- New save cell — `dt_tuned_f1.pkl`, `rf_tuned_f1.pkl`, `xgb_tuned_f1.pkl` to `../models/`
+
+**Verified:** scripted check confirms zero leakage pattern, zero `roc_auc` scoring, `f1` scoring present, `best_params_.copy()` reuse present, and all three save-file references present.
+
+**Downstream effect:** `3.4_lesson.ipynb` and `4.1_lesson.ipynb` (which already expected these exact three files in `../models/`) are now unblocked — `3.3_lesson.ipynb` actually produces what they need.
+
+**Module 3 status: fully complete.** Item #1 and #5 from the "what's left" list are resolved — 8.3_lesson/8.4_lesson can now actually run locally once data is in place.
