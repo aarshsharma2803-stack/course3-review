@@ -674,3 +674,25 @@ Checked `1.1_code_brief.ipynb` and `1.1_lesson.ipynb` for the same issue — nei
 Removed `3.3_comparison_for_juan.md` and `3.3_comparison_for_juan.pdf` from the GitHub repo (user request — these were scratch review artifacts made to get Juan's sign-off on the 3.3 duplicate-file merge, already resolved, not course content). Used `git rm --cached` (untrack, keep local copies) plus added both to `.gitignore` so they don't get re-tracked. They remain in the repo's git history (initial commit) but no longer appear in the current tree or any future commit.
 
 **"What's left" list status:** items #2 (5.1_code_brief) and #3 (1.1 wording) resolved. Only #4 (8.5 positional-join, still just a recommendation pending approval) and #6 (8.5 deploy data, partially resolved — have `Deploy_Survey_Data.csv` from Keval, still need `Deploy_Data_Other.csv` and file clarification) remain open.
+
+---
+
+## 2026-07-21 — Subagent-driven full review: 4 real bugs found and fixed + 1 flagged
+
+Ran 7 parallel review subagents (one per code-heavy module 2–8), each doing a deep correctness check of that module's lecture/code_brief/lesson triads. Verified every new claim directly before acting (one subagent claim refuted). Found bugs my earlier grep sweeps missed because they weren't leakage/scoring patterns:
+
+### FIXED — Critical
+- **`3.4_lesson.ipynb`**: loaded dead model filenames `decision_tree_best.joblib` / `random_forest_best.joblib` / `xgboost_early_stopping.joblib`, but `3.3_lesson.ipynb` now saves `dt_tuned_f1.pkl` / `rf_tuned_f1.pkl` / `xgb_tuned_f1.pkl` (from the earlier rename fix). Guaranteed `FileNotFoundError`. The rename fix had updated 3.4 lecture + 3.4_code_brief but missed the lesson. Fixed the three load paths to `_f1.pkl`.
+
+### FIXED — Minor
+- **`2.4 Tune Regularization Hyperparameters.ipynb`** (lecture): title said `# 1.4` → fixed to `# 2.4`.
+- **`2.1_code_brief.ipynb`**: title said `# 1.1 Code Brief` → fixed to `# 2.1 Code Brief`. (Completes the title-fix set; 2.2/2.3 code_brief titles were fixed earlier.)
+- **`8.1 Introduction ... .ipynb`** (lecture): two typos in the Study-C retraction sentence — "retracted by due to" → "retracted due to", "thr integrity" → "the integrity".
+
+### REFUTED subagent claim (no action)
+- A subagent claimed `3.3_lesson.ipynb` must save `feature_columns.pkl` + `train_medians.pkl` or `3.4_lesson` breaks. Verified false: `3.4_lesson` is self-contained — it reads `../data/training.csv` + `testing.csv` and computes its own train medians correctly (train-only, no leakage). The lesson track never loads those two artifacts; only the lecture/code_brief track does. Both tracks valid.
+
+### FLAGGED, NOT auto-fixed — the one remaining runtime crash
+- **`baseline_logistic.pkl` orphan**: `2.3` (lecture + code_brief + lesson) loads `baseline_logistic.pkl` to compare the unregularized baseline against the regularized models, but NOTHING in Course 3 produces it (2.1 is pure theory; 2.2 only saves l2_ridge/l1_lasso/elasticnet). 2.4 does NOT need it (only 2.3). This is a guaranteed `FileNotFoundError` in 2.3 — confirmed at runtime by the user. Fix requires either (A) 2.2 also build+save a `LogisticRegression(penalty=None)` baseline, or (B) 2.3 drop the baseline from its comparison. Both change lecture content / pedagogy → Juan's decision, not a mechanical fix. Recommendation: Option A (keeps the baseline-vs-regularized comparison 2.3 is built around; matches the course's "each notebook saves what the next needs" pattern).
+
+Module review verdicts from subagents (after verification): Modules 4, 5, 6, 7 fully clean. Module 2 = baseline orphan + 2 title typos (fixed). Module 3 = 3.4_lesson filename crash (fixed). Module 8 = 8.1 typos (fixed), everything else clean including the known-accepted 8.5 positional-join / deploy-data items.
