@@ -696,3 +696,21 @@ Ran 7 parallel review subagents (one per code-heavy module 2–8), each doing a 
 - **`baseline_logistic.pkl` orphan**: `2.3` (lecture + code_brief + lesson) loads `baseline_logistic.pkl` to compare the unregularized baseline against the regularized models, but NOTHING in Course 3 produces it (2.1 is pure theory; 2.2 only saves l2_ridge/l1_lasso/elasticnet). 2.4 does NOT need it (only 2.3). This is a guaranteed `FileNotFoundError` in 2.3 — confirmed at runtime by the user. Fix requires either (A) 2.2 also build+save a `LogisticRegression(penalty=None)` baseline, or (B) 2.3 drop the baseline from its comparison. Both change lecture content / pedagogy → Juan's decision, not a mechanical fix. Recommendation: Option A (keeps the baseline-vs-regularized comparison 2.3 is built around; matches the course's "each notebook saves what the next needs" pattern).
 
 Module review verdicts from subagents (after verification): Modules 4, 5, 6, 7 fully clean. Module 2 = baseline orphan + 2 title typos (fixed). Module 3 = 3.4_lesson filename crash (fixed). Module 8 = 8.1 typos (fixed), everything else clean including the known-accepted 8.5 positional-join / deploy-data items.
+
+---
+
+## 2026-07-21 — FIX: baseline_logistic.pkl orphan (Option A) — 2.3 no longer crashes
+
+The last remaining runtime crash. 2.3 (lecture + code_brief + lesson) loaded `baseline_logistic.pkl` to compare the unregularized Course-2 baseline against the regularized models, but nothing produced it → guaranteed FileNotFoundError.
+
+**Fix (Option A, user-approved):** 2.2 now also builds and saves the baseline. Added to all three 2.2 files (lecture, code_brief, lesson):
+- A new model cell: `model_baseline = Pipeline([... LogisticRegression(penalty=None, class_weight='balanced', solver='lbfgs', max_iter=1000, random_state=42)])`. `penalty=None` = the Course-2 unregularized baseline; `solver='lbfgs'` (liblinear does not support penalty=None); same preprocessor as the regularized models.
+- `"Baseline": model_baseline` added as the first entry in `models_dict`.
+
+The existing save loop (`name.lower().replace(' ','_') + '_logistic.pkl'`) turns the "Baseline" key into exactly `baseline_logistic.pkl` — the filename all three 2.3 files load. Verified the full chain: each 2.2 file's models_dict contains "Baseline", and each 2.3 file loads `baseline_logistic.pkl` + the three regularized files. Match confirmed.
+
+Why Option A over dropping the baseline from 2.3 (Option B): 2.3 is literally "Train and COMPARE Regularized... Models" — the baseline-vs-regularized comparison is the lesson's whole point; Option B would gut it and require reworking 2.3's tables/coefficient plots. Option A is the smaller change and pedagogically correct. It also matches the course's established "each notebook saves what the next needs" pattern (the bug was simply that this one artifact got dropped from the chain). 2.2's narrative already recaps "the baseline model from Course 2 (penalty=None)" in section 2, so building it there is fully consistent.
+
+Flagged to Juan as a lecture-content change (informational, per the established fix workflow).
+
+**Course status:** both known runtime crashes now fixed (3.4_lesson filenames earlier today, baseline_logistic.pkl now). No remaining code-level crashes anywhere in the course. Only open items are external/decision: the 8.5 SID-column request to Kagba (held uncommitted), and the bottleneck.csv question to Juan.
