@@ -714,3 +714,13 @@ Why Option A over dropping the baseline from 2.3 (Option B): 2.3 is literally "T
 Flagged to Juan as a lecture-content change (informational, per the established fix workflow).
 
 **Course status:** both known runtime crashes now fixed (3.4_lesson filenames earlier today, baseline_logistic.pkl now). No remaining code-level crashes anywhere in the course. Only open items are external/decision: the 8.5 SID-column request to Kagba (held uncommitted), and the bottleneck.csv question to Juan.
+
+---
+
+## 2026-07-21 — FIX: corrupted duplicate cells from the earlier baseline fix (2.2 lecture/code_brief/lesson)
+
+The baseline fix committed earlier today (`eeca04d`) had a real defect the user caught by actually running it in Colab: in all three 2.2 files, the NotebookEdit that was meant to add `"Baseline": model_baseline` to `models_dict` instead landed on the wrong cell — it overwrote the markdown header immediately before the code cell (turning it into a markdown cell containing the new code as inert, non-executing text), while the actual `models_dict` **code** cell was left untouched with its old 3-model version. Net effect: the notebook still only ever saved `l2_ridge_logistic.pkl` / `l1_lasso_logistic.pkl` / `elasticnet_logistic.pkl` — `baseline_logistic.pkl` was never actually produced, so 2.3 still crashed. The `model_baseline` Pipeline definition itself (added earlier in each file) was correct and unaffected — only the models_dict registration was broken.
+
+**Fixed** in all three files: restored the markdown header to plain text (2.2 lecture: "### Model Comparison Summary"; 2.2_code_brief: "## Save Models"; 2.2_lesson: "## Compare What We Built"), and fixed the real code cell to include `"Baseline": model_baseline` in models_dict. Verified: each file now has exactly one code cell defining models_dict, containing Baseline, and zero markdown cells with stray code text.
+
+Root cause: this notebook format doesn't use the standard nbformat top-level `cell.id` (id lives in `cell.metadata.id`, a Colab-export convention) — the edit tool couldn't resolve the target cell reliably against that scheme when a new cell had just been inserted earlier in the same file, and silently landed on an adjacent cell instead of erroring. Lesson: after any edit to a file using this id convention, verify the actual diff/resulting cell content directly rather than trusting the edit confirmation.
