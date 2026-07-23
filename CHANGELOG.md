@@ -1,6 +1,6 @@
 # Changelog
 
-Record of every fix made to align each lesson's `_code_brief.ipynb` and `_lesson.ipynb` with its lecture notebook (100% matching, runnable code). One dated section per work session. Entries are appended, never overwritten.
+Record of every fix made to align each lesson's `_code_brief.ipynb` and `_lesson.ipynb` with its lecture notebook (100% matching, runnable code). Entries are appended, never overwritten. Sections are titled by topic, not date.
 
 ---
 
@@ -772,3 +772,76 @@ Since train (Fall 2019 cohort) and test (Fall 2022 cohort) have different free-t
 - **Module 5**: k=4 is used consistently across all four case studies, correctly informed by elbow/silhouette plots, but no markdown cell narrates *why* k=4 was chosen from those plots. Silhouette scores are printed but never interpreted (e.g., what counts as "good"). Both are teaching-clarity improvements, not correctness issues — the underlying k selection and metrics themselves are valid.
 
 **Net result of this pass:** one genuine, previously-undiscovered methodology bug (module 7 vectorizer leakage) found and precisely diagnosed; everything else in modules 2–7 confirmed methodologically sound after independent verification, with two agent-flagged "issues" correctly identified as false positives (legitimate design choices, not defects).
+
+---
+
+## Summary — All Errors Solved (across the whole review effort)
+
+Consolidated, undated list of every bug actually fixed (not just flagged). Full before/after detail for each lives in the sections above; this is the scannable index.
+
+### Module 1
+- 1.1 lecture: two cells wrongly referenced CRISP as if taught in notebook 1.2 (which comes after 1.1) — reworded both.
+
+### Module 2
+- 2.2/2.3 code_briefs: wrong variable names, hyperparameters, and save filenames vs. the lecture — fixed to match.
+- 2.2/2.3 lessons: same fixes, plus a `models_filepath == data_filepath` path bug (models were saving into the data folder).
+- 2.3 code_brief/lesson: missing baseline (unregularized) model in the comparison, and a wrong `baseline_logistic_model.pkl` filename that would have crashed — fixed.
+- 2.2/2.3/2.4 code_briefs: were using local `../data/` paths instead of the lecture's Drive paths (code_briefs must match the lecture's actual environment) — fixed all three to Drive paths.
+- 2.2_code_brief, 2.3_code_brief, 2.1_code_brief: wrong titles ("1.2 Code Brief", "1.3 Code Brief", "1.1 Code Brief" — Module 1 numbering left over from copy-paste) — fixed to correct module numbers.
+- 2.4_code_brief: wrong model filenames (`_logistic_model.pkl` suffix that doesn't exist) and a dynamic save filename instead of the lecture's fixed `best_tuned_logistic_model.pkl` (which 4.1 depends on by exact name); also missing the `grid_search_comparison_data.pkl` save entirely — fixed.
+- 2.4 lecture: title said "1.4" instead of "2.4" — fixed.
+- 2.4 lecture: `elasticnet_results_best_l1` was used but never defined (`NameError`, caught by live run) — added the missing per-C best-l1_ratio derivation.
+- 2.2 lecture/code_brief/lesson: `baseline_logistic.pkl` was loaded by 2.3 but nothing produced it (`FileNotFoundError`, caught by live run) — 2.2 now also builds and saves the baseline model (`penalty=None`).
+- Same 2.2 fix, round 2: the first attempt corrupted a markdown header (turned it into dead code text) and left the real `models_dict` cell with the old 3-model version, so the fix silently didn't take — caught by live run, properly fixed in all three files.
+
+### Module 3
+- 3.1_code_brief: was generic boilerplate with zero real content — full rewrite to match the lecture.
+- 3.2_code_brief: same — full rewrite.
+- 3.2_lesson: had two extra `.fillna(median())` calls not in the lecture, and its cross-validation cell scored on `roc_auc` instead of the lecture's `f1`, missing several hyperparameters (`max_features`, `min_samples_split`, `scale_pos_weight`) — fixed.
+- 3.3 lecture: missing the artifact-persistence step (`feature_columns.pkl`, `train_medians.pkl`) that 3.4 depends on — added.
+- 3.3_lesson/3.3_code_brief: found still broken on a later pass (reverted somewhere along the way) — fully rebuilt both from scratch: F1 scoring throughout, train-only median imputation, XGBoost early stopping reusing `best_params_`, and the model-save cell.
+- 3.3/3.4/4.1/8.3/8.4 cross-module: tuned model files were saved/loaded under three different filename sets across the course — standardized everything on the `_f1.pkl` convention (matches Juan's own 4.1 lecture).
+- 3.4 lecture: Learning Objectives listed 5 items but only 2 were actually delivered; Summary had a "F1 Score" subsection describing an analysis that was never run — trimmed both to match what's actually in the notebook (per Juan's explicit instruction).
+- 3.4_lesson: was retraining fresh untuned models instead of loading the tuned ones, had the test-own-median leakage bug, and included ROC/feature-importance sections that don't exist in the lecture — full rewrite.
+- 3.4_code_brief: was generic boilerplate — full rewrite.
+- 3.4_lesson (round 2): after the cross-module rename, still loaded the old dead filenames (`decision_tree_best.joblib` etc.) instead of the new `_f1.pkl` names — guaranteed `FileNotFoundError`, missed by the original rename pass, caught by a review-agent pass. Fixed.
+- Formatting bug: a JSON-writing script used for several early code_brief rewrites dropped trailing newlines from multi-line cell source, making them render as one unbroken line — fixed across 3.1/3.2/3.4/4.1 code_briefs (8 + 13 + 7 + 8 cells).
+
+### Module 4
+- 4.1_lesson: was retraining wrong/untuned models instead of loading the tuned ones, had a stale 6-dimension ROC-AUC radar chart instead of the lecture's F1-based one, and extra sections (ROC curves, metrics bar chart) not in the lecture — full rewrite.
+- 4.1_code_brief: generic boilerplate — full rewrite.
+- 4.2_code_brief: generic boilerplate — full rewrite to byte-for-byte match the lecture.
+- 4.2_lesson: close but not identical (missing imports, shortened strings, missing comments) — restored to byte-for-byte match.
+
+### Module 5
+- 5.1_code_brief: was still the generic empty placeholder — rebuilt as 25 cells, byte-for-byte matching all 16 of the lecture's code cells (first attempt from memory dropped comments and renamed a variable — caught in verification, rebuilt by extracting the lecture's cells programmatically instead).
+
+### Module 6
+- 6.1_code_brief: was a single placeholder markdown cell — full rewrite (13 cells, byte-for-byte match).
+- 6.1_lesson: missing the `!pip install catboost` cell the lecture has — added.
+- 6.2 lecture: the "Notes on our MLPClassifier Configuration" markdown said `batch_size=32` but the actual code used `batch_size=50` — fixed the notes (not the code, per Juan's direction, since cached output was generated with the real code).
+- 6.2_code_brief: single placeholder cell — full rewrite (byte-for-byte match).
+- 6.2_lesson: wrong `batch_size` (32→50), wrong `random_state` (42→88), missing a print line, and one comparison-table row that didn't match the lecture — fixed.
+- 6.1 and 6.2 (lecture + code_brief + lesson, all 6 files): data-leakage bug — test set was being filled with its own median instead of the training median — fixed everywhere.
+
+### Module 7
+- 7.1–7.6 code_briefs: didn't exist — built new for all six, verified byte-for-byte against their lectures (7.1/7.2 are condensed concept summaries since their lectures have no code).
+- 7.3 lecture + code_brief: a cell referenced `ML_Survey_Data19.index`, an undefined variable (`NameError`) — fixed to the actual loaded frame name `ML_Survey_Data`. Also cleaned up two harmless leftover "19" references in a markdown cell and a code comment.
+- TRAIN data generator: was exporting `ML_Survey_Data19.csv`, but every downstream notebook expects `ML_Survey_Data.csv` (no suffix) — fixed the output filename, unblocking the entire module 7 pipeline.
+- 7.1–7.6 lessons: didn't exist — built new for all six.
+- 7.6 (lecture + code_brief + lesson): leakage bug — `preprocessor.fit_transform(df_test)` was re-fitting the scaler/encoder on test data instead of reusing the train-fitted preprocessor via `.transform()` — fixed everywhere.
+- Repo-wide: 27 files (mostly module 7/8 lesson files, several code_briefs, a few lecture files) had `null` cell IDs, which broke GitHub's notebook renderer — assigned real IDs to every affected cell without touching any code content.
+
+### Module 8
+- 8.4 lecture: two leakage bugs (test filled with its own median, both the admin and survey feature sets) — fixed, using captured train-only medians.
+- 8.4 lecture: the Decision Tree row of the radar chart was pulling Logistic Regression's ROC-AUC value instead of its own — fixed.
+- 8.4 lecture: deleted a stray leftover debug-arithmetic cell with no pedagogical purpose.
+- 8.5 lecture: `RANDOM_STATE = 2` — every other notebook in the course uses 42, this was an isolated typo — fixed.
+- 8.1–8.5 code_briefs: didn't exist — built new for all five, verified byte-for-byte, including the module-filename fixes below.
+- 8.3/8.4 lectures: were loading tuned tree models from the wrong filenames (`xgb_tuned.pkl` etc., which nothing produces) and the wrong Drive folder entirely — fixed to load the correct `_f1.pkl` files from the correct folder.
+- 8.1–8.5 lessons: didn't exist — built new for all five.
+
+### Not fixed — flagged, pending an external decision (see body of this changelog for full detail)
+- **Module 7.3/7.6**: the text vectorizer (`CountVectorizer`/`TfidfVectorizer`) is fit separately on train and test text, producing two independently-built vocabularies — will crash or silently corrupt PCA downstream in 7.6. Diagnosed precisely; fix is straightforward (fit on train only, transform test) but touches lecture content, pending sign-off.
+- **Module 8.5**: the advisor-outreach join matches students to risk scores by row position, not by a real key — `Deploy_Survey_Data.csv` has no SID column to key on. Guarded with a row-count assertion (uncommitted, pending Kagba's regenerated file with SID added).
+- **Module 5**: whether `bottleneck.csv` should replace 5.1's synthetic course-bottleneck data — pending Juan's answer.
