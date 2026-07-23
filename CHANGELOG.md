@@ -845,3 +845,25 @@ Consolidated, undated list of every bug actually fixed (not just flagged). Full 
 - **Module 7.3/7.6**: the text vectorizer (`CountVectorizer`/`TfidfVectorizer`) is fit separately on train and test text, producing two independently-built vocabularies — will crash or silently corrupt PCA downstream in 7.6. Diagnosed precisely; fix is straightforward (fit on train only, transform test) but touches lecture content, pending sign-off.
 - **Module 8.5**: the advisor-outreach join matches students to risk scores by row position, not by a real key — `Deploy_Survey_Data.csv` has no SID column to key on. Guarded with a row-count assertion (uncommitted, pending Kagba's regenerated file with SID added).
 - **Module 5**: whether `bottleneck.csv` should replace 5.1's synthetic course-bottleneck data — pending Juan's answer.
+
+---
+
+## Full code_brief/lesson-vs-lecture code match audit (all modules)
+
+User asked for a very thorough, detailed check that code_brief and lesson code actually matches the lecture, across every module already worked on. Ran three layered checks (byte-exact, condensed-subset, canonical-hyperparameter comparison ignoring kwarg order/positional-vs-keyword style) rather than relying on cell-count or naive string diffing, which both produce false positives against legitimately condensed/reformatted files.
+
+### FOUND AND FIXED — critical, real bug: collapsed-newline corruption reappeared
+
+`3.1_code_brief.ipynb`, `3.2_code_brief.ipynb`, `3.4_code_brief.ipynb`, `4.1_code_brief.ipynb` — the exact same "cell source lost all its newlines" bug documented earlier this session (and supposedly fixed then) had reverted: 26 cells total (8 + 13 + 6 + 8 minus a few already-clean ones) had their entire `source` collapsed into a single unbroken string with zero `\n` characters, in code AND markdown cells alike. In code cells this isn't cosmetic — it merges adjacent statements into invalid tokens (`DecisionTreeClassifierfrom`, etc.) and would throw `SyntaxError`/`ImportError` on execution.
+
+Checked git history for a known-good version to restore from — none existed; the repo's very first commit already contained this corrupted state, meaning the original fix (from a prior session, before this GitHub repo existed) was made to a different local copy that never made it into this repo, and was overwritten by a later file-replacement. Rebuilt every affected cell by hand from the still-readable (if squished) content, restoring proper line breaks, indentation, and markdown table/code-block structure — no logic or values changed, purely formatting restoration. Verified: zero collapsed-source code cells remain anywhere in the repo.
+
+### CONFIRMED SOUND after resolving false positives from naive comparison
+
+- Initial cell-count and raw-line-diff checks flagged nearly every condensed code_brief/lesson as "mismatched" — all false positives from legitimate cell consolidation and code reformatting (not a real difference). Rebuilt the comparison to extract and canonicalize actual function-call arguments (sorted, whitespace-stripped) before comparing, which correctly ignores kwarg reordering and positional-vs-keyword style.
+- With that corrected check: **2.2, 2.3, 4.2, 5.1, 6.1, 6.2, 7.6, 8.2, 8.4 code_briefs/lessons all match their lecture's hyperparameters exactly.** 3.3, 3.4, 3.1, 3.2, 4.1 code_briefs now match exactly (post-fix above).
+- `3.3_lesson.ipynb` has a small, confirmed-harmless divergence from the lecture: inline model instantiation instead of a separate variable, `refit=True` stated explicitly (which is sklearn's own default — no behavior change) instead of `verbose=1` (only affects console logging during the search), and the Random Forest constructor additionally receives `n_jobs=-1` (redundant with `RandomizedSearchCV`'s own `n_jobs=-1`, no effect on results, at most a minor CPU-oversubscription consideration). The actual hyperparameter grids, scoring metric (`'f1'`), CV object, and `random_state` are all identical to the lecture — this does not change model results.
+
+### Not touched — separate, pre-existing, lower-priority observation
+
+A broader sweep also found ~74 markdown cells (spread across original lecture files — 0.1, 2.1, 2.2, 6.1, 7.1/7.4/7.5/7.6, 8.1/8.2/8.4/8.5, both module-7 generators — plus a few other code_briefs like 7.1/8.1/8.2) with the same "no newline" pattern in markdown-only cells. Unlike the code-cell case, this doesn't cause execution errors (markdown isn't run), and for the original lecture files it appears to be the instructor's original authoring style, not something introduced by any work in this session. Flagged as a lower-priority cosmetic item, not auto-fixed — would need the same file-by-file reconstruction treatment as above if the user wants it cleaned up.
