@@ -734,3 +734,41 @@ Root cause: this notebook format doesn't use the standard nbformat top-level `ce
 **Fix:** inserted a new cell right after `elasticnet_results` is built, deriving the per-C "best l1_ratio" row via `elasticnet_results.groupby('param_classifier__C')['mean_test_score'].idxmax()` — for each C value, keep only the row with the highest CV F1 across the 5 l1_ratio values tested. This is exactly what the existing comment above the broken line already described ("the 'elasticnet_results_best_l1' dataframe which already has the best l1_ratio for each C value") — the derivation step was simply missing.
 
 This is the third real runtime-only bug the user's actual Colab run has caught (after the 3.4_lesson filename crash and the baseline_logistic.pkl orphan) — confirms static/agent review alone wasn't sufficient; the live run-through is finding real, distinct bugs each module.
+
+---
+
+## 2026-07-21 — Full ML-methodology review, modules 0–7 (6 parallel review agents)
+
+User had by this point run every lecture in Colab end-to-end and fixed all runtime crashes (baseline_logistic.pkl, 3.4_lesson filenames, elasticnet_results_best_l1). Requested a deeper pass: not "does it crash" (already proven out live) but "is the ML methodology actually sound" — reviewed as an ML engineer.
+
+**Scope:** Modules 0 and 1 checked first and excluded — 0.1 is pure setup/package-verification (no data, no models); 1.1–1.3 are AI-prompting tutorials (no model-training code). Dispatched one methodology-review agent per module for 2, 3, 4, 5, 6, 7 (module 8 out of scope for this pass), each checking: test-set discipline, class-imbalance handling, CV strategy, leakage patterns, threshold consistency, reproducibility, and comparison fairness. Every non-trivial claim from the agents was independently re-verified against the actual notebook JSON/cached outputs before being accepted — one agent claim was corrected in the process (see below).
+
+### FLAGGED — real bug, not yet fixed (pending decision)
+
+**Module 7.3/7.6 — TF-IDF/CountVectorizer fit separately on train and test text.**
+`vectorize_text_data()` in 7.3 (lecture + code_brief + lesson) creates a fresh `CountVectorizer`/`TfidfVectorizer` and calls `.fit_transform()` on whatever dataframe is passed in — called once on `ML_Survey_Data` (train text) and again on `ML_Survey_Data22` (test text). Each call builds its own independent vocabulary from that cohort's text alone. Verified downstream in 7.6: the resulting matrices are consumed via pure positional slicing (`ML_Survey_Data_Num.iloc[:, 11:]`, `ML_Survey_Data22_Num.iloc[:, 11:]`), no column-name alignment, then `pca.fit_transform(tfidf_matrix_train)` followed by `pca.transform(tfidf_matrix_test)`.
+
+Since train (Fall 2019 cohort) and test (Fall 2022 cohort) have different free-text responses, their independently-fit vocabularies will almost certainly differ in size — meaning `pca.transform(tfidf_matrix_test)` will raise a feature-count mismatch (`ValueError`) the first time 7.6 is actually run against real generated data. If the vocabulary sizes coincidentally match, it's worse: PCA would silently apply a transformation learned from train's column meanings onto test's differently-meaning columns — garbage output with no error.
+
+**Correct fix (not yet applied — lecture-content change, needs sign-off):** fit the vectorizer once on train text only (`.fit()`), then `.transform()` (not `.fit_transform()`) on test text, so both share one vocabulary/column set — same pattern already used correctly elsewhere in the course (train-only medians, train-only preprocessor fit). Affects 7.3's lecture, code_brief, and lesson (all three currently have the bug identically).
+
+### VERIFIED SOUND — no action needed, full audit trail
+
+- **Module 4** (1.1/4.2): no findings at all — comparison fairness, feature-space handling, threshold consistency, reproducibility all correct.
+- **Module 2** (2.2–2.4): test-set discipline, class-imbalance handling (`class_weight='balanced'` + F1-on-minority scoring throughout), StratifiedKFold CV, Pipeline-based leakage prevention, `random_state=42` consistency, and search-space sanity all verified correct.
+- **Module 3** (3.3/3.4): test-set discipline, train-only median imputation, XGBoost early-stopping validation split (carved from train, not test), reproducibility, and 3.3→3.4 feature-schema handoff (`feature_columns.pkl`/`train_medians.pkl`) all verified correct.
+- **Module 5** (5.1): scaling-before-clustering, PCA fit on the same scaled data used for clustering, cluster profiles correctly computed on original (not scaled) units, RISK_INDEX weights sum to 1.0 and are self-normalized, reproducibility all verified correct.
+- **Module 6** (6.1/6.2): MLPClassifier scaling (fit-train/transform-test), early-stopping validation split, train-only median imputation, and 6.1-vs-Module-3-XGBoost comparison fairness all verified correct.
+- **Module 7** (7.4, 7.5, 7.6 apart from the flagged issue): PCA fit-on-train-only discipline in 7.6 verified correct; topic modeling (7.4) fit on the full corpus is appropriate since it's unsupervised/exploratory, not part of the supervised pipeline; VADER (7.5) needs no fitting so no leakage risk; structured-feature imputation and PCA component count (80% explained variance) in 7.6 both verified correct.
+
+### CLARIFIED — flagged by an agent, verified NOT a bug
+
+- **Module 3 Decision Tree tuned to `class_weight=None`.** An agent flagged this as inconsistent imbalance-handling (RF/XGB always balance, DT's search picked no balancing). Verified against the actual cached GridSearchCV output: `class_weight` was included as a genuine, empirically-tuned option (`['balanced', None]`), and `None` won on CV F1 (0.6570) and confirmed on test F1 (0.6846) — both reasonable, non-degenerate scores. This is F1-scoring (already imbalance-aware) legitimately finding that this Decision Tree performs better without explicit reweighting, not a methodology defect.
+- **Module 2: baseline model isn't re-tuned in 2.4.** Flagged as breaking the "does regularization help" narrative. This is a legitimate scope choice, not a defect — 2.3 already establishes the baseline's CV F1 for comparison; 2.4's stated purpose is tuning the three regularized variants specifically.
+- **Module 6: AdaBoost has no `class_weight` handling** (unlike LightGBM/CatBoost in the same notebook). Confirmed: sklearn's `AdaBoostClassifier` genuinely has no `class_weight` parameter — this is an sklearn API constraint, not something the course can "fix." Worth a caveat when comparing AdaBoost's ROC-AUC to LightGBM/CatBoost's, not an actionable bug. (The MLPClassifier's `random_state=88` was also re-flagged by an agent as an inconsistency — already reviewed and confirmed intentional earlier this session; not new.)
+
+### NOTED — pedagogical clarity gaps, not code bugs
+
+- **Module 5**: k=4 is used consistently across all four case studies, correctly informed by elbow/silhouette plots, but no markdown cell narrates *why* k=4 was chosen from those plots. Silhouette scores are printed but never interpreted (e.g., what counts as "good"). Both are teaching-clarity improvements, not correctness issues — the underlying k selection and metrics themselves are valid.
+
+**Net result of this pass:** one genuine, previously-undiscovered methodology bug (module 7 vectorizer leakage) found and precisely diagnosed; everything else in modules 2–7 confirmed methodologically sound after independent verification, with two agent-flagged "issues" correctly identified as false positives (legitimate design choices, not defects).
