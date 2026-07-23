@@ -724,3 +724,13 @@ The baseline fix committed earlier today (`eeca04d`) had a real defect the user 
 **Fixed** in all three files: restored the markdown header to plain text (2.2 lecture: "### Model Comparison Summary"; 2.2_code_brief: "## Save Models"; 2.2_lesson: "## Compare What We Built"), and fixed the real code cell to include `"Baseline": model_baseline` in models_dict. Verified: each file now has exactly one code cell defining models_dict, containing Baseline, and zero markdown cells with stray code text.
 
 Root cause: this notebook format doesn't use the standard nbformat top-level `cell.id` (id lives in `cell.metadata.id`, a Colab-export convention) — the edit tool couldn't resolve the target cell reliably against that scheme when a new cell had just been inserted earlier in the same file, and silently landed on an adjacent cell instead of erroring. Lesson: after any edit to a file using this id convention, verify the actual diff/resulting cell content directly rather than trusting the edit confirmation.
+
+---
+
+## 2026-07-21 — FIX: undefined `elasticnet_results_best_l1` in 2.4 (caught by user's live Colab run)
+
+2.4's hyperparameter-visualization cell used `elasticnet_results_best_l1` (to plot ElasticNet's CV F1 vs. C on the same axis as L2/L1, which only have one hyperparameter each) but that variable was never defined anywhere — a `NameError` on run. Only the lecture references it; `2.4_code_brief.ipynb` and `2.4_lesson.ipynb` don't include this visualization cell, so they were unaffected.
+
+**Fix:** inserted a new cell right after `elasticnet_results` is built, deriving the per-C "best l1_ratio" row via `elasticnet_results.groupby('param_classifier__C')['mean_test_score'].idxmax()` — for each C value, keep only the row with the highest CV F1 across the 5 l1_ratio values tested. This is exactly what the existing comment above the broken line already described ("the 'elasticnet_results_best_l1' dataframe which already has the best l1_ratio for each C value") — the derivation step was simply missing.
+
+This is the third real runtime-only bug the user's actual Colab run has caught (after the 3.4_lesson filename crash and the baseline_logistic.pkl orphan) — confirms static/agent review alone wasn't sufficient; the live run-through is finding real, distinct bugs each module.
