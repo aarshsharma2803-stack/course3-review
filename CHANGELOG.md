@@ -4,7 +4,7 @@ Record of every fix made to align each lesson's `_code_brief.ipynb` and `_lesson
 
 ---
 
-## 2026-07-08 — Module 3.4 (LECTURE FILE EDIT — second one in this effort)
+## Module 3.4 (LECTURE FILE EDIT — second one in this effort)
 
 ### `3.4 Evaluating Tree-Based Models.ipynb`
 **Background:** Instructor-level review found the notebook's Learning Objectives listed 5 items but only delivered 2 (verified precisely — grepped every cell for `feature_importances`, `calibrat`, `threshold`, `f1_score`; confirmed zero code anywhere for objectives 3, 4, and 5, and confirmed `f1_score` is never called despite the Summary having a dedicated "F1 Score" subsection explaining it as if it had been computed). Reported to Juan with the specifics. His reply: **"yes that was edited out. thank you. adjust to reflect what is actually delivered."** — confirms this content was intentionally removed at some point and the fix is to trim the text to match reality, not add the missing analyses.
@@ -55,7 +55,7 @@ Note: while editing, several parallel `NotebookEdit` delete/insert calls caused 
 
 ---
 
-## 2026-07-08 — Module 4.1 (JUAN'S CHANGE — pulled from GitHub, not made by us)
+## Module 4.1 (JUAN'S CHANGE — pulled from GitHub, not made by us)
 
 ### `4.1 Systematic Model Comparison.ipynb`
 **Change:** Juan pushed an update to GitHub and asked the user to pull it. No local git clone exists yet, so the user downloaded the file individually and had it swapped into the working folder. Diffed the two versions to confirm what changed before replacing:
@@ -90,7 +90,7 @@ This is Juan applying the same AUC→F1 standardization already done elsewhere i
 
 ---
 
-## 2026-07-08 — Module 4.2 (+ a formatting bug found and fixed across 5 earlier files)
+## Module 4.2 (+ a formatting bug found and fixed across 5 earlier files)
 
 ### `4.2_code_brief.ipynb`
 **Change:** Was confirmed (via precise cell-type/content check, after an initial incorrect claim that it already had real content — corrected mid-session) to be the generic 2-cell placeholder, zero real code. Rewritten with real code matching the lecture: Model Selection Criteria table, data setup, the save/load RF example (including the lecture's own leakage bug and AUC-only metric — deliberately kept identical, not silently "improved," since code_brief must match the lecture as it currently stands), Model Card template (including the unfilled `[Insert from evaluation]` placeholder, kept as-is), Key Decisions.
@@ -111,7 +111,7 @@ This is Juan applying the same AUC→F1 standardization already done elsewhere i
 
 ---
 
-## 2026-07-08 — Module 6.1 (Special Topics — Additional Boosting Algorithms)
+## Module 6.1 (Special Topics — Additional Boosting Algorithms)
 
 ### `6.1_code_brief.ipynb`
 **Change:** Full rewrite — was a single markdown cell (title + "Condensed reference for notebook 6.1."), not even the generic boilerplate placeholder other empty code_briefs had. Rewritten with 13 cells covering the comparison table, Drive-based setup, AdaBoost, LightGBM (try/except), the `!pip install catboost` cell, CatBoost (try/except), and key takeaways.
@@ -125,7 +125,7 @@ This is Juan applying the same AUC→F1 standardization already done elsewhere i
 
 ---
 
-## 2026-07-08 — Module 6.2 (Special Topics — Neural Networks, third lecture-file edit)
+## Module 6.2 (Special Topics — Neural Networks, third lecture-file edit)
 
 ### `6.2 Special Topics - Neural Networks.ipynb` (LECTURE FILE EDIT)
 **Background:** Found a self-contradiction inside the lecture itself: the actual `MLPClassifier` code uses `batch_size=50, random_state=88`, but the "Notes on our MLPClassifier Configuration" markdown cell right after it describes the model as using `batch_size=32` — the docs didn't match the code. Also noted `random_state=88` is a course-wide outlier (every other notebook uses `42`), likely a typo.
@@ -151,7 +151,7 @@ Reported both to Juan with two options: (a) change the code to match the notes, 
 
 ---
 
-## 2026-07-08 — Module 3.3 (LECTURE FILE EDIT — first one in this effort)
+## Module 3.3 (LECTURE FILE EDIT — first one in this effort)
 
 ### `3.3 Tuning Tree-Based Models.ipynb` (the plain, no-suffix lecture)
 **Background:** Module 3.3 had two lecture files (`3.3 Tuning Tree-Based Models Using f1.ipynb` and this plain one) that each saved only half of what `3.4 Evaluating Tree-Based Models.ipynb` needs — the plain file saved the three tuned `.joblib` models but not the `feature_columns.pkl`/`train_medians.pkl` preprocessing artifacts; "Using f1" saved those artifacts but not the (better) early-stopped models. Reported the diff to Juan (repo owner); he approved merging into a single canonical file, using this plain one as the base since it's more complete.
@@ -217,7 +217,7 @@ print(f"Saved {len(feature_columns)} feature columns + {len(train_medians)} medi
 
 ---
 
-## 2026-07-07 — Module 2 (2.1, 2.2, 2.3, 2.4)
+## Module 2 (2.1, 2.2, 2.3, 2.4)
 
 ### 2.1 Introduction to Regularization
 **Change:** None needed.
@@ -300,7 +300,7 @@ preprocessor = trained_models['Baseline (No Penalty)'].named_steps['preprocessin
 
 ---
 
-## 2026-07-07 — Module 3.1 (Introduction to Tree-Based Models)
+## Module 3.1 (Introduction to Tree-Based Models)
 
 ### `3.1_code_brief.ipynb`
 **Change:** Full rewrite — was 2 cells of generic boilerplate (identical across all of 3.1/3.2/3.3/3.4_code_brief), now contains the lecture's real content.
@@ -323,7 +323,7 @@ y_prob = model.predict_proba(X_test)[:, 1]
 
 ---
 
-## 2026-07-07 — Module 3.2 (Building Tree-Based Models in Practice)
+## Module 3.2 (Building Tree-Based Models in Practice)
 
 ### `3.2_code_brief.ipynb`
 **Change:** Full rewrite — was the same generic 2-cell boilerplate as 3.1/3.3/3.4_code_brief, now contains the lecture's real code.
@@ -389,7 +389,7 @@ for name, model in models_cv.items():
 
 ---
 
-## 2026-07-13 — Module 7 (new `_code_brief.ipynb` files — did not exist before)
+## Module 7 (new `_code_brief.ipynb` files — did not exist before)
 
 **Background:** Module 7 (EDA in Unstructured Data) had only the 6 lecture notebooks (7.1–7.6) plus 2 instructor-side data-generator notebooks — no `_code_brief.ipynb` or `_lesson.ipynb` for any sub-lesson, unlike every other module. Flagged to Juan/Keval (still awaiting confirmation on whether `_lesson.ipynb` files should also exist). User asked to build the code_briefs regardless.
 
@@ -419,7 +419,7 @@ Same situation as 7.1 — 7.2's lecture is pure ethics/framework markdown, zero 
 
 ---
 
-## 2026-07-13 — Module 7.3 bug fix (LECTURE FILE EDIT)
+## Module 7.3 bug fix (LECTURE FILE EDIT)
 
 **Background:** The `NameError` bug flagged in the 7.3 code_brief entry above (`ML_Survey_Data19.index` — undefined variable) was approved for a direct fix rather than waiting further on Juan.
 
@@ -443,7 +443,7 @@ Same fix applied to the matching cell, to stay in sync with the lecture.
 
 ---
 
-## 2026-07-13 — Module 3.3/3.4/4.1/8.3/8.4 (cross-module tuned-model filename fix)
+## Module 3.3/3.4/4.1/8.3/8.4 (cross-module tuned-model filename fix)
 
 **Background:** Reviewing Module 8 surfaced a real cross-module dependency break, predating any work in this session. The same three tuned tree models (Decision Tree, Random Forest, XGBoost) were referenced under **three different filenames** across the course:
 
@@ -482,7 +482,7 @@ Juan's own `4.1` lecture depended on the duplicate 3.3 file that was slated for 
 
 ---
 
-## 2026-07-13 — Module 8 (bug fixes in 8.4/8.5, then new `_code_brief.ipynb` files for 8.1–8.5)
+## Module 8 (bug fixes in 8.4/8.5, then new `_code_brief.ipynb` files for 8.1–8.5)
 
 **Background:** Thorough review of module 8 (didn't exist as code_briefs before, same gap as module 7) surfaced real bugs in 8.4 and 8.5, re-verified word-for-word before fixing. User approved fixing them, then building code_briefs the same way as module 7.
 
@@ -524,7 +524,7 @@ Same pattern as Module 7:
 
 ---
 
-## 2026-07-14 — Module 7 (new `_lesson.ipynb` files) + Module 7 data pipeline fix + newly found 7.6 leakage bug
+## Module 7 (new `_lesson.ipynb` files) + Module 7 data pipeline fix + newly found 7.6 leakage bug
 
 ### Generator fix: `Generating Higher Ed Text Data - TRAIN.ipynb` (cell `cell-26`)
 **Before:** `output_filename = 'ML_Survey_Data19.csv'`
@@ -553,7 +553,7 @@ X_structured_test = preprocessor.fit_transform(df_test)   # ← re-fits on test,
 
 ---
 
-## 2026-07-15 — Module 6 and 7: fixing all known leakage bugs, "make it perfect" pass
+## Module 6 and 7: fixing all known leakage bugs, "make it perfect" pass
 
 **Background:** User asked to make Module 6 and 7 fully correct before continuing to Module 8. This session fixed every previously-flagged bug in both modules, verified via full sweep that nothing else remains.
 
@@ -581,7 +581,7 @@ Cleaned up the two harmless `ML_Survey_Data19` leftovers noted (but intentionall
 
 ---
 
-## 2026-07-15 — Module 8 (new `_lesson.ipynb` files for 8.1–8.5)
+## Module 8 (new `_lesson.ipynb` files for 8.1–8.5)
 
 Same convention as Module 7's lessons — local relative paths (`../data/`, `../models/`), no Drive mount, regardless of the lecture's own path convention.
 
@@ -602,7 +602,7 @@ First draft of `8.5_lesson.ipynb` silently "improved" the advisor-outreach-list 
 
 ---
 
-## 2026-07-15 — Repo-wide GitHub cell-ID fix, then full cross-module audit
+## Repo-wide GitHub cell-ID fix, then full cross-module audit
 
 **Background:** Created a private GitHub repo (`course3-review`) to review changes. After pushing, lesson notebooks wouldn't open on GitHub.
 
@@ -630,7 +630,7 @@ Three separate problems, all from when these files were built early in this sess
 
 ---
 
-## 2026-07-15 — `3.3_lesson.ipynb` and `3.3_code_brief.ipynb` rebuilt for real this time
+## `3.3_lesson.ipynb` and `3.3_code_brief.ipynb` rebuilt for real this time
 
 **Background:** These two files were reported fixed earlier this session, then discovered still broken during a later review (likely reverted by a Downloads-folder file replacement somewhere along the way). A rebuild attempt got blocked mid-way by the permission system. User re-approved; rebuilt both from scratch this time, verified immediately rather than assumed.
 
@@ -653,7 +653,7 @@ Rebuilt as 18 cells on local `../data/`/`../models/` paths (same convention as e
 
 ---
 
-## 2026-07-15 — Remaining "what's left" items: `5.1_code_brief.ipynb` rebuild, 1.1 wording fix, repo cleanup
+## Remaining "what's left" items: `5.1_code_brief.ipynb` rebuild, 1.1 wording fix, repo cleanup
 
 Before fixing, checked whether either flagged item was actually a genuine bug or something required as-is (same diligence as the 3.3 files, which turned out to be genuinely load-bearing downstream). Confirmed both were real, isolated bugs with no hidden dependency:
 - `5.1`'s lecture is fully self-contained (all synthetic data generated inline, zero `pickle.dump`/`joblib.dump`/`to_csv`/external `read_csv` calls) and nothing in modules 6/7/8 references module 5 at all — safe to rebuild with no downstream risk.
@@ -677,7 +677,7 @@ Removed `3.3_comparison_for_juan.md` and `3.3_comparison_for_juan.pdf` from the 
 
 ---
 
-## 2026-07-21 — Subagent-driven full review: 4 real bugs found and fixed + 1 flagged
+## Subagent-driven full review: 4 real bugs found and fixed + 1 flagged
 
 Ran 7 parallel review subagents (one per code-heavy module 2–8), each doing a deep correctness check of that module's lecture/code_brief/lesson triads. Verified every new claim directly before acting (one subagent claim refuted). Found bugs my earlier grep sweeps missed because they weren't leakage/scoring patterns:
 
@@ -699,7 +699,7 @@ Module review verdicts from subagents (after verification): Modules 4, 5, 6, 7 f
 
 ---
 
-## 2026-07-21 — FIX: baseline_logistic.pkl orphan (Option A) — 2.3 no longer crashes
+## FIX: baseline_logistic.pkl orphan (Option A) — 2.3 no longer crashes
 
 The last remaining runtime crash. 2.3 (lecture + code_brief + lesson) loaded `baseline_logistic.pkl` to compare the unregularized Course-2 baseline against the regularized models, but nothing produced it → guaranteed FileNotFoundError.
 
@@ -717,7 +717,7 @@ Flagged to Juan as a lecture-content change (informational, per the established 
 
 ---
 
-## 2026-07-21 — FIX: corrupted duplicate cells from the earlier baseline fix (2.2 lecture/code_brief/lesson)
+## FIX: corrupted duplicate cells from the earlier baseline fix (2.2 lecture/code_brief/lesson)
 
 The baseline fix committed earlier today (`eeca04d`) had a real defect the user caught by actually running it in Colab: in all three 2.2 files, the NotebookEdit that was meant to add `"Baseline": model_baseline` to `models_dict` instead landed on the wrong cell — it overwrote the markdown header immediately before the code cell (turning it into a markdown cell containing the new code as inert, non-executing text), while the actual `models_dict` **code** cell was left untouched with its old 3-model version. Net effect: the notebook still only ever saved `l2_ridge_logistic.pkl` / `l1_lasso_logistic.pkl` / `elasticnet_logistic.pkl` — `baseline_logistic.pkl` was never actually produced, so 2.3 still crashed. The `model_baseline` Pipeline definition itself (added earlier in each file) was correct and unaffected — only the models_dict registration was broken.
 
@@ -727,7 +727,7 @@ Root cause: this notebook format doesn't use the standard nbformat top-level `ce
 
 ---
 
-## 2026-07-21 — FIX: undefined `elasticnet_results_best_l1` in 2.4 (caught by user's live Colab run)
+## FIX: undefined `elasticnet_results_best_l1` in 2.4 (caught by user's live Colab run)
 
 2.4's hyperparameter-visualization cell used `elasticnet_results_best_l1` (to plot ElasticNet's CV F1 vs. C on the same axis as L2/L1, which only have one hyperparameter each) but that variable was never defined anywhere — a `NameError` on run. Only the lecture references it; `2.4_code_brief.ipynb` and `2.4_lesson.ipynb` don't include this visualization cell, so they were unaffected.
 
@@ -737,7 +737,7 @@ This is the third real runtime-only bug the user's actual Colab run has caught (
 
 ---
 
-## 2026-07-21 — Full ML-methodology review, modules 0–7 (6 parallel review agents)
+## Full ML-methodology review, modules 0–7 (6 parallel review agents)
 
 User had by this point run every lecture in Colab end-to-end and fixed all runtime crashes (baseline_logistic.pkl, 3.4_lesson filenames, elasticnet_results_best_l1). Requested a deeper pass: not "does it crash" (already proven out live) but "is the ML methodology actually sound" — reviewed as an ML engineer.
 
