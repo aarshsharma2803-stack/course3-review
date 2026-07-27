@@ -867,3 +867,18 @@ Checked git history for a known-good version to restore from — none existed; t
 ### Not touched — separate, pre-existing, lower-priority observation
 
 A broader sweep also found ~74 markdown cells (spread across original lecture files — 0.1, 2.1, 2.2, 6.1, 7.1/7.4/7.5/7.6, 8.1/8.2/8.4/8.5, both module-7 generators — plus a few other code_briefs like 7.1/8.1/8.2) with the same "no newline" pattern in markdown-only cells. Unlike the code-cell case, this doesn't cause execution errors (markdown isn't run), and for the original lecture files it appears to be the instructor's original authoring style, not something introduced by any work in this session. Flagged as a lower-priority cosmetic item, not auto-fixed — would need the same file-by-file reconstruction treatment as above if the user wants it cleaned up.
+
+---
+
+## FIX: 8.5 deployed without a names file — real SID-based scoring, no join needed
+
+Kagba confirmed `Deploy_Survey_Data.csv` now includes a real `SID` column (verified column-for-column against `ML_SURVEY_MASTER_TRAIN.csv` — same 52 feature columns, same order, target column correctly excluded, SID added). User decided to proceed without `Deploy_Data_Other.csv` (the names file) rather than wait on it further, since SID alone is enough to build a correct, safely-keyed outreach list.
+
+Replaced the earlier assertion-guarded positional join (held uncommitted, never shipped) with the real fix, in all three files (lecture, code_brief, lesson):
+- Load `Deploy_Survey_Data.csv`, split into `deploy_sids` (the SID column) and `df_deploy` (features only) — the model was never trained on a SID column, so it must be removed before `predict_proba()`.
+- Score `df_deploy`, then reattach `deploy_sids` to `holdout_scores` directly.
+- Removed the `df_deploy_names` load entirely (no `Deploy_Data_Other.csv` dependency anymore).
+- The old "join by row position" cell is gone — `df_deploy_risk = holdout_scores` directly, since SID is already attached correctly per-row from the source file.
+- `recommended_context_cols` / outreach list no longer includes `NAME`/`LAST_NAME`.
+
+Net effect: 8.5 is now genuinely runnable end-to-end with real data, keyed by actual student ID (not row position), with no dependency on a file that was never delivered. If `Deploy_Data_Other.csv` shows up later, adding names back is a one-line `pd.merge(df_deploy_risk, df_deploy_names, on='SID')` — trivial, low-risk addition, not a blocker for anything today.
