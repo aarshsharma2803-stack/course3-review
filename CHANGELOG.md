@@ -882,3 +882,15 @@ Replaced the earlier assertion-guarded positional join (held uncommitted, never 
 - `recommended_context_cols` / outreach list no longer includes `NAME`/`LAST_NAME`.
 
 Net effect: 8.5 is now genuinely runnable end-to-end with real data, keyed by actual student ID (not row position), with no dependency on a file that was never delivered. If `Deploy_Data_Other.csv` shows up later, adding names back is a one-line `pd.merge(df_deploy_risk, df_deploy_names, on='SID')` — trivial, low-risk addition, not a blocker for anything today.
+
+---
+
+## FIX: 7.3 vectorizer fit-on-test leakage — the last known open bug, now fixed
+
+Full-course re-check requested ("no bugs, best code"). Re-ran every automated sweep first (leakage, collapsed-source, cell-id, RANDOM_STATE) — everything held from prior fixes, no reverts. Then fixed the one bug that had been diagnosed but never actually applied: `vectorize_text_data()` in 7.3 (lecture, code_brief, lesson) built a fresh `CountVectorizer`/`TfidfVectorizer` and called `.fit_transform()` on whatever DataFrame was passed — called once on train text, once on test text, giving each its own independently-fit vocabulary.
+
+**Fix:** the function now accepts optional already-fitted `count_vectorizer`/`tfidf_vectorizer` arguments. Called with no arguments (train), it fits fresh as before. Called with the train-fitted vectorizers passed in (test), it only `.transform()`s — never re-fits — so both datasets share one vocabulary and column set. Applied identically across all three files; the lesson has this logic in a single condensed cell, the lecture/code_brief keep it as a standalone function + two call sites.
+
+Caught and fixed one self-introduced typo during this edit: a markdown-cell edit in the lecture briefly wrote the literal text `<cell_type>markdown</cell_type>` into the cell's content instead of setting the type via the correct parameter — caught immediately on verification, fixed before moving on.
+
+**Course status: zero known open bugs.** Every previously-flagged issue across the entire course (0–8) is now either fixed or confirmed to be a legitimate, intentional design choice (documented in the "Errors Solved" summary and the ML-methodology review section above).
