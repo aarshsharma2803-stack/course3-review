@@ -2,6 +2,10 @@
 data/
 models/
 *.csv
+
+# Allow assignment data folder
+!assignments/data/
+!assignments/data/*.csv
 *.pkl
 *.joblib
 *.h5
